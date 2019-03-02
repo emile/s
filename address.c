@@ -474,8 +474,9 @@ char *s, *text;
 		return(0);
 	if (s == text)
 		return(!isspace(*s));
-	if ((ident_char(*s) && !ident_char(s[-1]))
-	  || (special_char(*s) && !special_char(s[-1])))
+	if (ident_char(*s) && !ident_char(s[-1]))
+		return(1);
+	if (special_char(*s) && !special_char(s[-1]))
 		return(1);
 	return(0);
 }
