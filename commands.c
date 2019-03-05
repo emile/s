@@ -25,11 +25,11 @@
 *	O	- insert lines above the current line
 *	p	- put the contents of the yank buffer below the current line
 *	P	- put the contents of the yank buffer above the current line
-*	q	- quit; don't save the modifications
 *	r<char>	- replace the current character by <char>
 *	s	- substitute for the current character (same as c<space>)
 *	u	- undo the most recent buffer-change command
 *	<n>x	- delete n characters (same as <n>d<space>)
+*	Y	- yank 1 line
 *	ZZ	- save the modifications and quit
 *	?	- tell the current position in the file
 *	.	- redo the most recent buffer-change command
@@ -38,6 +38,7 @@
 *	:r	- read a file; place its contents below the current line
 *	:R	- read a file; place its contents above the current line
 *	:w	- write a range of lines to a file
+*	:q	- quit; don't save the modifications
 *
 *
 * External procedures calls:
@@ -228,20 +229,6 @@ char c;
 		case 'P':
 			do_put(-1);
 			break;
-		case 'q':
-			if (b_modified()) {
-				s_putmsg("Discard? ");
-				if (k_getch() != 'y') {
-					UNKNOWN;
-					break;
-				}
-			}
-			if (s_ismsg())
-				s_refresh();
-			b_free();
-			k_finish();
-			s_finish();
-			exit(0);
 		case 'r':
 			sprintf(text1, "c %c%c", k_getch(), ESCAPE);
 			k_donext(text1);	/* c<space><char><esc> */
@@ -258,6 +245,9 @@ char c;
 			sprintf(text1, "%dd ", n);
 			k_donext(text1);	/* <n>d<space> */
 			break;
+		case 'Y':
+                        k_donext("yy");
+                        break;
 		case 'Z':
 			if (k_getch() != 'Z') {
 				UNKNOWN;
@@ -270,6 +260,7 @@ char c;
 				k_donext("q");
 			break;
 		case '?':
+		case ctrl('g'):
 			sprintf(text1, "%s: %sline %d of %d", cur_file,
 				(b_modified()) ? "[Modified] " : "",
 				cur_line, b_size());
@@ -437,6 +428,20 @@ static void do_io()
 				s_savemsg(msg, 0);
 			}
 			break;
+		case 'q':
+			if (b_modified()) {
+				s_putmsg("Discard? ");
+				if (k_getch() != 'y') {
+					UNKNOWN;
+					break;
+				}
+			}
+			if (s_ismsg())
+				s_refresh();
+			b_free();
+			k_finish();
+			s_finish();
+			exit(0);
 		default:
 			UNKNOWN;
 			break;

@@ -10,3 +10,4 @@ j:c -c -O sman.c
 j:c -c -O screen.c
 j:c -c -O lib.c
 j:c -c -O adjust.c
+j:c -c -O escape.c

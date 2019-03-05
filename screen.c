@@ -73,8 +73,6 @@
 #define INSERT_ROW	"L"
 #define LONG_COUNT	10
 #define MOVE(row,col)	printf("\033[%d;%dH",row,col)
-#define NCOL		80	/* columns per screen row */
-#define NROW		24	/* rows per screen */
 #define PAD_CHAR	'\0'
 #define SCREEN(x)	printf("\033[%s",x)
 #define SHORT_COUNT	4

@@ -105,7 +105,9 @@ char *argv[];
 		/* prepare to get a new command */
 		s_refresh();
 		k_newcmd();
-		c = k_getch();
+                /* ignore extra ESCAPE characters */
+		while ((c = k_getch()) == ESCAPE)
+		        s_refresh();
 		count = get_count(&c);
 		/* for simple commands, move on to the next command */
 		if (simp_cmd(count, c))

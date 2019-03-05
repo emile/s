@@ -20,14 +20,16 @@
 *	Commands M, 0 (zero), ' (apostrophe), and ` (backquote) ignore the count.
 *
 *			Line Addresses:
-*	<n>g		- line n of the buffer
+*	<n>G		- line n of the buffer
 *	<n>H		- down n lines from the top of the screen
 *	<n>L		- up n lines from the bottom of the screen
 *	M		- the middle line of the screen
 *	<n><return>	- down n lines from the current line
 *	<n>-		- up n lines from the current line
 *	<n>ctrl(d)	- down n lines from the bottom of the screen
+*	<n>ctrl(f)	- down n screens
 *	<n>ctrl(u)	- up n lines from the top of the screen
+*	<n>ctrl(p)	- up n screens
 *	<n>c		- down n-1 lines (only with the c operator)
 *	<n>d		- down n-1 lines (only with the d operator)
 *	<n>y		- down n-1 lines (only with the y operator)
@@ -121,7 +123,7 @@ char c, op;
 	char ch, text[MAXTEXT-1];
 
 	/* set default count to 1, except for three special cases */
-	if (n == 0 && c != 'g' && c != ctrl('d') && c != ctrl('u'))
+	if (n == 0 && c != 'G' && c != ctrl('d') && c != ctrl('u'))
 		n = 1;
 	b_getcur(&cur_line, &cur_pos);	/* cursor location */
 	line_addr = 0;	/* reset by commands that address lines */
@@ -129,7 +131,7 @@ char c, op;
 	switch (c) {
 
 	/* ----------  Line Addresses:  ---------- */
-		case 'g':
+		case 'G':
 			/* ad hoc default value for the count */
 			if (n == 0)
 				n = b_size();
@@ -161,6 +163,16 @@ char c, op;
 				scroll_size = n;
 			line_addr = max (s_firstline() - scroll_size, 1);
 			break;
+		case ctrl('f'):
+		case KEY_PGDN:
+			line_addr = s_lastline() + NROW * n + scroll_size;
+			break;
+		case ctrl('b'):
+		case KEY_PGUP:
+			line_addr = s_firstline() - NROW * n - scroll_size;
+			if (line_addr <= 0)
+				line_addr = 1;
+			break;
   		case 'c':
   		case 'd':
   		case 'y':
@@ -191,16 +203,21 @@ char c, op;
 			break;
 		case 'h':
 		case '\b':	/* <backspace> */
+		case BACKSPACE:
+		case KEY_LEFT:
 			b_setcur(cur_line, max(cur_pos - n, 0));
 			break;
 		case 'j':
+		case KEY_DOWN:
 			do_up_down(n);
 			break;
 		case 'k':
+		case KEY_UP:
 			do_up_down(-n);
 			break;
 		case 'l':
 		case ' ':
+		case KEY_RIGHT:
 			b_gets(cur_line, text);
 			limit = strlen(text) - 1;
 			/*
@@ -348,7 +365,8 @@ int i;
 	else
 		new_line = max (cur_line + i, 1);
 	/* if the last command was neither j nor k, compute a new column */
-	if (k_lastcmd() != 'j' && k_lastcmd() != 'k')
+	if (k_lastcmd() != 'j'      && k_lastcmd() != 'k' &&
+	    k_lastcmd() != KEY_DOWN && k_lastcmd() != KEY_UP)
 		col = pos_to_col(cur_line, cur_pos);
 	/* translate the screen column to a position in the new line */
 	new_pos = col_to_pos(new_line, col);

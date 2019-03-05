@@ -228,6 +228,7 @@ int end_line, end_pos;
 	while ((c = k_getch()) != ESCAPE) {
 		switch (c) {
 			case '\b':
+			case BACKSPACE:
 				/* don't back up past beginning of a line ... */
 				if ((cur_pos == 0) ||
 				/* ... or where the insertion started */

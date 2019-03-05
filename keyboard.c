@@ -73,6 +73,7 @@ static struct sgttyb oldt;
 
 extern void s_savemsg(), s_keyboard(), b_newcmd();
 extern int b_changed();
+extern int esc_buffer();
 int k_keyin();
 void k_flip();
 
@@ -115,8 +116,7 @@ int k_getch()
 	int ch;
 
 	/* get pushed character (preferably) or read keyboard */
-	/* use logical AND operation with octal 0177 to strip the parity bit */
-	ch = (push_ptr > pushed) ? *(--push_ptr) : k_keyin() & 0177;
+	ch = (push_ptr > pushed) ? *(--push_ptr) : k_keyin();
 	/* remember character if there is room */
 	if (cmd_ptr <= command + CMD_MAX)
 		*cmd_ptr++ = ch;
@@ -143,7 +143,7 @@ void k_newcmd()
 
 	*cmd_ptr = '\0';
 	/* remember first letter of the old command */
-	for (s = command; *s != '\0' && !isalpha(*s); ++s)
+	for (s = command; *s != '\0' && !(isalpha(*s) || ISKEY(*s)); ++s)
 		;
 	cmd_last = *s;
 	/* if the old command changed the buffer, remember it */
@@ -170,12 +170,7 @@ void k_redo()
 /* keyboard input mode */
 static int k_raw = 0;
 
-/*	
-* k_keyin - get a character from the keyboard
-* Hide system dependent differences in keyboard input
-*/
-
-int k_keyin()
+int k_keyin_unesc()
 {
 #ifdef CONIO
 	if (k_raw) {
@@ -188,7 +183,21 @@ int k_keyin()
 #endif
 }
 
-/*	
+/*
+* k_keyin - get a character from the keyboard
+* Hide system dependent differences in keyboard input
+*/
+
+int k_keyin()
+{
+	int ch;
+	while(!(ch = esc_buffer(k_keyin_unesc())));
+	return(ch);
+}
+
+
+
+/*
 * k_flip  - toggle keyboard input to and from noecho-raw mode  (UNIX)
 * Normally:
 *	1. typed characters are echoed back to the terminal and

@@ -12,4 +12,5 @@ sman.obj \
 screen.obj \
 lib.obj \
 adjust.obj \
+escape.obj \
 j:libc.lib
